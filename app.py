@@ -1,4 +1,4 @@
-"""
+""" 
 🇳🇴 Norwegian Job Market Dashboard
 Run with:  streamlit run app.py
 """
