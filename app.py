@@ -1,5 +1,5 @@
-"""  
-🇳🇴 Norwegian Job Market Dashboard
+"""
+🇳🇴 Norwegian Job Market Dashboard — Streamlit App
 Run with:  streamlit run app.py
 """
 
@@ -11,19 +11,19 @@ import os
 # Resolve paths relative to this script's location, not the terminal's cwd
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
-# Page config 
+# ── Page config ────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Norway Jobs Dashboard",
     page_icon="🇳🇴",
     layout="wide"
 )
 
-# Title
+# ── Title ──────────────────────────────────────────────────────────────────
 st.title("Norwegian Job Market Dashboard")
-st.markdown("*Live data from NAV (Arbeidsplassen.no) - run the notebook first to refresh the data*")
+st.markdown("*Live data from NAV (Arbeidsplassen.no). Run the notebook first to refresh the data*")
 st.divider()
 
-# Load data
+# ── Load data ──────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
     """Load the CSV file saved by the notebook."""
@@ -34,15 +34,15 @@ def load_data():
     ]
     csv_path = next((p for p in candidates if os.path.exists(p)), None)
     if csv_path is None:
-        st.error("Data file not found! Please run the Jupyter notebook first to generate norway_jobs_summary.csv")
+        st.error("❌ Data file not found! Please run the Jupyter notebook first to generate norway_jobs_summary.csv")
         st.stop()
     df = pd.read_csv(csv_path, parse_dates=["last_updated"])
     return df
 
 df = load_data()
 
-# Sidebar filters
-st.sidebar.header("Filter Listings")
+# ── Sidebar filters ────────────────────────────────────────────────────────
+st.sidebar.header("🔍 Filter Listings")
 
 all_cities = sorted(df["location"].dropna().unique())
 selected_cities = st.sidebar.multiselect(
@@ -70,7 +70,7 @@ if selected_cats:
 st.sidebar.divider()
 st.sidebar.markdown(f"**Showing:** {len(filtered):,} jobs")
 
-# KPI row
+# ── KPI row ────────────────────────────────────────────────────────────────
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("🗂️ Active Jobs",      f"{len(filtered):,}")
 col2.metric("🏢 Unique Employers", f"{filtered['employer'].nunique():,}")
@@ -79,7 +79,7 @@ col4.metric("📂 Categories",       f"{filtered['category'].nunique():,}")
 
 st.divider()
 
-# Row 1: Cities + Categories
+# ── Row 1: Cities + Categories ─────────────────────────────────────────────
 col_left, col_right = st.columns(2)
 
 with col_left:
@@ -116,7 +116,7 @@ with col_right:
     fig_cat.update_layout(height=420, showlegend=True)
     st.plotly_chart(fig_cat, use_container_width=True)
 
-# Row 2: Top employers
+# ── Row 2: Top employers ───────────────────────────────────────────────────
 employer_counts = filtered["employer"].value_counts().head(15)
 fig_emp = px.bar(
     x=employer_counts.values,
@@ -137,7 +137,7 @@ fig_emp.update_layout(
 fig_emp.update_traces(textposition="outside")
 st.plotly_chart(fig_emp, use_container_width=True)
 
-# Row 3: Timeline
+# ── Row 3: Timeline ────────────────────────────────────────────────────────
 if "last_updated" in filtered.columns and filtered["last_updated"].notna().sum() > 0:
     filtered["date"] = filtered["last_updated"].dt.date
     daily = (
@@ -156,7 +156,7 @@ if "last_updated" in filtered.columns and filtered["last_updated"].notna().sum()
     fig_time.update_layout(height=350)
     st.plotly_chart(fig_time, use_container_width=True)
 
-# Data table
+# ── Data table ─────────────────────────────────────────────────────────────
 st.subheader("📋 Browse Listings")
 display_df = (
     filtered[["title", "employer", "location", "category"]]
@@ -172,4 +172,4 @@ st.dataframe(display_df, use_container_width=True, height=380)
 
 # ── Footer ─────────────────────────────────────────────────────────────────
 st.divider()
-st.caption("Data source: NAV Arbeidsplassen (pam-stilling-feed.nav.no) · Built with Python + Streamlit · Project 1 of 7")
+st.caption("Data source: NAV Arbeidsplassen (pam-stilling-feed.nav.no) · Built with Python + Streamlit")
